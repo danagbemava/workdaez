@@ -37,8 +37,18 @@ class $WorkProfileTable extends WorkProfile
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("track_time" IN (0, 1))'),
       defaultValue: const Constant(false));
+  static const VerificationMeta _trackWeekendsMeta =
+      const VerificationMeta('trackWeekends');
   @override
-  List<GeneratedColumn> get $columns => [id, name, trackTime];
+  late final GeneratedColumn<bool> trackWeekends = GeneratedColumn<bool>(
+      'track_weekends', aliasedName, false,
+      type: DriftSqlType.bool,
+      requiredDuringInsert: false,
+      defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'CHECK ("track_weekends" IN (0, 1))'),
+      defaultValue: const Constant(false));
+  @override
+  List<GeneratedColumn> get $columns => [id, name, trackTime, trackWeekends];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -62,6 +72,12 @@ class $WorkProfileTable extends WorkProfile
       context.handle(_trackTimeMeta,
           trackTime.isAcceptableOrUnknown(data['track_time']!, _trackTimeMeta));
     }
+    if (data.containsKey('track_weekends')) {
+      context.handle(
+          _trackWeekendsMeta,
+          trackWeekends.isAcceptableOrUnknown(
+              data['track_weekends']!, _trackWeekendsMeta));
+    }
     return context;
   }
 
@@ -77,6 +93,8 @@ class $WorkProfileTable extends WorkProfile
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       trackTime: attachedDatabase.typeMapping
           .read(DriftSqlType.bool, data['${effectivePrefix}track_time'])!,
+      trackWeekends: attachedDatabase.typeMapping
+          .read(DriftSqlType.bool, data['${effectivePrefix}track_weekends'])!,
     );
   }
 
@@ -90,14 +108,19 @@ class WorkProfileData extends DataClass implements Insertable<WorkProfileData> {
   final int id;
   final String name;
   final bool trackTime;
+  final bool trackWeekends;
   const WorkProfileData(
-      {required this.id, required this.name, required this.trackTime});
+      {required this.id,
+      required this.name,
+      required this.trackTime,
+      required this.trackWeekends});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['track_time'] = Variable<bool>(trackTime);
+    map['track_weekends'] = Variable<bool>(trackWeekends);
     return map;
   }
 
@@ -106,6 +129,7 @@ class WorkProfileData extends DataClass implements Insertable<WorkProfileData> {
       id: Value(id),
       name: Value(name),
       trackTime: Value(trackTime),
+      trackWeekends: Value(trackWeekends),
     );
   }
 
@@ -116,6 +140,7 @@ class WorkProfileData extends DataClass implements Insertable<WorkProfileData> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       trackTime: serializer.fromJson<bool>(json['trackTime']),
+      trackWeekends: serializer.fromJson<bool>(json['trackWeekends']),
     );
   }
   @override
@@ -125,68 +150,82 @@ class WorkProfileData extends DataClass implements Insertable<WorkProfileData> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'trackTime': serializer.toJson<bool>(trackTime),
+      'trackWeekends': serializer.toJson<bool>(trackWeekends),
     };
   }
 
-  WorkProfileData copyWith({int? id, String? name, bool? trackTime}) =>
+  WorkProfileData copyWith(
+          {int? id, String? name, bool? trackTime, bool? trackWeekends}) =>
       WorkProfileData(
         id: id ?? this.id,
         name: name ?? this.name,
         trackTime: trackTime ?? this.trackTime,
+        trackWeekends: trackWeekends ?? this.trackWeekends,
       );
   @override
   String toString() {
     return (StringBuffer('WorkProfileData(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('trackTime: $trackTime')
+          ..write('trackTime: $trackTime, ')
+          ..write('trackWeekends: $trackWeekends')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, trackTime);
+  int get hashCode => Object.hash(id, name, trackTime, trackWeekends);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is WorkProfileData &&
           other.id == this.id &&
           other.name == this.name &&
-          other.trackTime == this.trackTime);
+          other.trackTime == this.trackTime &&
+          other.trackWeekends == this.trackWeekends);
 }
 
 class WorkProfileCompanion extends UpdateCompanion<WorkProfileData> {
   final Value<int> id;
   final Value<String> name;
   final Value<bool> trackTime;
+  final Value<bool> trackWeekends;
   const WorkProfileCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.trackTime = const Value.absent(),
+    this.trackWeekends = const Value.absent(),
   });
   WorkProfileCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     this.trackTime = const Value.absent(),
+    this.trackWeekends = const Value.absent(),
   }) : name = Value(name);
   static Insertable<WorkProfileData> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<bool>? trackTime,
+    Expression<bool>? trackWeekends,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (trackTime != null) 'track_time': trackTime,
+      if (trackWeekends != null) 'track_weekends': trackWeekends,
     });
   }
 
   WorkProfileCompanion copyWith(
-      {Value<int>? id, Value<String>? name, Value<bool>? trackTime}) {
+      {Value<int>? id,
+      Value<String>? name,
+      Value<bool>? trackTime,
+      Value<bool>? trackWeekends}) {
     return WorkProfileCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       trackTime: trackTime ?? this.trackTime,
+      trackWeekends: trackWeekends ?? this.trackWeekends,
     );
   }
 
@@ -202,6 +241,9 @@ class WorkProfileCompanion extends UpdateCompanion<WorkProfileData> {
     if (trackTime.present) {
       map['track_time'] = Variable<bool>(trackTime.value);
     }
+    if (trackWeekends.present) {
+      map['track_weekends'] = Variable<bool>(trackWeekends.value);
+    }
     return map;
   }
 
@@ -210,7 +252,8 @@ class WorkProfileCompanion extends UpdateCompanion<WorkProfileData> {
     return (StringBuffer('WorkProfileCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('trackTime: $trackTime')
+          ..write('trackTime: $trackTime, ')
+          ..write('trackWeekends: $trackWeekends')
           ..write(')'))
         .toString();
   }
@@ -268,9 +311,14 @@ class $WorkTrackerTable extends WorkTracker
   late final GeneratedColumn<DateTime> dateGenerated =
       GeneratedColumn<DateTime>('date_generated', aliasedName, false,
           type: DriftSqlType.dateTime, requiredDuringInsert: true);
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+      'notes', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
   @override
   List<GeneratedColumn> get $columns =>
-      [id, day, didWork, profileId, absentReason, dateGenerated];
+      [id, day, didWork, profileId, absentReason, dateGenerated, notes];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -316,6 +364,10 @@ class $WorkTrackerTable extends WorkTracker
     } else if (isInserting) {
       context.missing(_dateGeneratedMeta);
     }
+    if (data.containsKey('notes')) {
+      context.handle(
+          _notesMeta, notes.isAcceptableOrUnknown(data['notes']!, _notesMeta));
+    }
     return context;
   }
 
@@ -337,6 +389,8 @@ class $WorkTrackerTable extends WorkTracker
           .read(DriftSqlType.string, data['${effectivePrefix}absent_reason']),
       dateGenerated: attachedDatabase.typeMapping.read(
           DriftSqlType.dateTime, data['${effectivePrefix}date_generated'])!,
+      notes: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}notes']),
     );
   }
 
@@ -353,13 +407,15 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
   final int profileId;
   final String? absentReason;
   final DateTime dateGenerated;
+  final String? notes;
   const WorkTrackerData(
       {required this.id,
       required this.day,
       required this.didWork,
       required this.profileId,
       this.absentReason,
-      required this.dateGenerated});
+      required this.dateGenerated,
+      this.notes});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
@@ -371,6 +427,9 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
       map['absent_reason'] = Variable<String>(absentReason);
     }
     map['date_generated'] = Variable<DateTime>(dateGenerated);
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
     return map;
   }
 
@@ -384,6 +443,8 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
           ? const Value.absent()
           : Value(absentReason),
       dateGenerated: Value(dateGenerated),
+      notes:
+          notes == null && nullToAbsent ? const Value.absent() : Value(notes),
     );
   }
 
@@ -397,6 +458,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
       profileId: serializer.fromJson<int>(json['profileId']),
       absentReason: serializer.fromJson<String?>(json['absentReason']),
       dateGenerated: serializer.fromJson<DateTime>(json['dateGenerated']),
+      notes: serializer.fromJson<String?>(json['notes']),
     );
   }
   @override
@@ -409,6 +471,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
       'profileId': serializer.toJson<int>(profileId),
       'absentReason': serializer.toJson<String?>(absentReason),
       'dateGenerated': serializer.toJson<DateTime>(dateGenerated),
+      'notes': serializer.toJson<String?>(notes),
     };
   }
 
@@ -418,7 +481,8 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
           bool? didWork,
           int? profileId,
           Value<String?> absentReason = const Value.absent(),
-          DateTime? dateGenerated}) =>
+          DateTime? dateGenerated,
+          Value<String?> notes = const Value.absent()}) =>
       WorkTrackerData(
         id: id ?? this.id,
         day: day ?? this.day,
@@ -427,6 +491,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
         absentReason:
             absentReason.present ? absentReason.value : this.absentReason,
         dateGenerated: dateGenerated ?? this.dateGenerated,
+        notes: notes.present ? notes.value : this.notes,
       );
   @override
   String toString() {
@@ -436,14 +501,15 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
           ..write('didWork: $didWork, ')
           ..write('profileId: $profileId, ')
           ..write('absentReason: $absentReason, ')
-          ..write('dateGenerated: $dateGenerated')
+          ..write('dateGenerated: $dateGenerated, ')
+          ..write('notes: $notes')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, day, didWork, profileId, absentReason, dateGenerated);
+  int get hashCode => Object.hash(
+      id, day, didWork, profileId, absentReason, dateGenerated, notes);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -453,7 +519,8 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
           other.didWork == this.didWork &&
           other.profileId == this.profileId &&
           other.absentReason == this.absentReason &&
-          other.dateGenerated == this.dateGenerated);
+          other.dateGenerated == this.dateGenerated &&
+          other.notes == this.notes);
 }
 
 class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
@@ -463,6 +530,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
   final Value<int> profileId;
   final Value<String?> absentReason;
   final Value<DateTime> dateGenerated;
+  final Value<String?> notes;
   const WorkTrackerCompanion({
     this.id = const Value.absent(),
     this.day = const Value.absent(),
@@ -470,6 +538,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
     this.profileId = const Value.absent(),
     this.absentReason = const Value.absent(),
     this.dateGenerated = const Value.absent(),
+    this.notes = const Value.absent(),
   });
   WorkTrackerCompanion.insert({
     this.id = const Value.absent(),
@@ -478,6 +547,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
     required int profileId,
     this.absentReason = const Value.absent(),
     required DateTime dateGenerated,
+    this.notes = const Value.absent(),
   })  : day = Value(day),
         didWork = Value(didWork),
         profileId = Value(profileId),
@@ -489,6 +559,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
     Expression<int>? profileId,
     Expression<String>? absentReason,
     Expression<DateTime>? dateGenerated,
+    Expression<String>? notes,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
@@ -497,6 +568,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
       if (profileId != null) 'profile_id': profileId,
       if (absentReason != null) 'absent_reason': absentReason,
       if (dateGenerated != null) 'date_generated': dateGenerated,
+      if (notes != null) 'notes': notes,
     });
   }
 
@@ -506,7 +578,8 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
       Value<bool>? didWork,
       Value<int>? profileId,
       Value<String?>? absentReason,
-      Value<DateTime>? dateGenerated}) {
+      Value<DateTime>? dateGenerated,
+      Value<String?>? notes}) {
     return WorkTrackerCompanion(
       id: id ?? this.id,
       day: day ?? this.day,
@@ -514,6 +587,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
       profileId: profileId ?? this.profileId,
       absentReason: absentReason ?? this.absentReason,
       dateGenerated: dateGenerated ?? this.dateGenerated,
+      notes: notes ?? this.notes,
     );
   }
 
@@ -538,6 +612,9 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
     if (dateGenerated.present) {
       map['date_generated'] = Variable<DateTime>(dateGenerated.value);
     }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
     return map;
   }
 
@@ -549,7 +626,8 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
           ..write('didWork: $didWork, ')
           ..write('profileId: $profileId, ')
           ..write('absentReason: $absentReason, ')
-          ..write('dateGenerated: $dateGenerated')
+          ..write('dateGenerated: $dateGenerated, ')
+          ..write('notes: $notes')
           ..write(')'))
         .toString();
   }
