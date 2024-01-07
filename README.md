@@ -1,6 +1,10 @@
 # workdaez
 
-A new Flutter project.
+WorkDaez is an app I built specifically to help me track the days I worked. 
+
+### Motivation
+
+My days (work days, specifically) have seemingly blended togther for the past few months so it's kinda difficult for me to track what I did and didn't do on the various days. I then got the idea to build a simple app to help me keep track of the days I worked (or didn't and why) and optionally, what I did on those days as well. 
 
 ## Getting Started
 
