@@ -9,4 +9,5 @@ class WorkTracker extends Table {
   IntColumn get profileId => integer().references(WorkProfile, #id)();
   TextColumn get absentReason => text().nullable()();
   DateTimeColumn get dateGenerated => dateTime()();
+  TextColumn get notes => text().nullable()();
 }
