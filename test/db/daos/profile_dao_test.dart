@@ -13,7 +13,7 @@ void main() {
 
   test('adds one item on success', () async {
 
-    const data = WorkProfileData(id: 1, name: 'main', trackTime: false);
+    final data = const WorkProfileData(id: 1, name: 'main', trackTime: false, trackWeekends: false).toCompanion(true);
 
     var profiles = await profileDao.getProfiles();
 
@@ -26,7 +26,7 @@ void main() {
   });
 
   test('updates item if it exists, otherwise creates it', () async {
-    var data = const WorkProfileData(id: 1, name: 'testing', trackTime: true);
+    var data = const WorkProfileData(id: 1, name: 'testing', trackTime: true, trackWeekends: false).toCompanion(true);
 
     var profiles = await profileDao.getProfiles();
 
@@ -40,9 +40,9 @@ void main() {
 
     final createdData = profiles.first;
 
-    expect(data.id, createdData.id);
+    expect(data.id.value, createdData.id);
 
-    data = const WorkProfileData(id: 1, name: 'updating name', trackTime: false);
+    data = const WorkProfileData(id: 1, name: 'updating name', trackTime: false, trackWeekends: false).toCompanion(true);
 
     await profileDao.insertProfile(data);
 
@@ -58,7 +58,7 @@ void main() {
   });
 
   test('delete removes only created profile', () async {
-      const data = WorkProfileData(id: 1, name: 'main', trackTime: false);
+      var data = const WorkProfileData(id: 1, name: 'main', trackTime: false, trackWeekends: false).toCompanion(true);
 
       var profiles = await profileDao.getProfiles();
 

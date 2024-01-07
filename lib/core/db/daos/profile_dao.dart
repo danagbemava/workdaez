@@ -11,12 +11,16 @@ class ProfileDao extends DatabaseAccessor<AppDatabase> with _$ProfileDaoMixin {
 
   final _logger = LoggerMixin<ProfileDao>();
 
-  Future<void> insertProfile(WorkProfileData profile) async {
+  Future<void> insertProfile(WorkProfileCompanion profile) async {
     try {
       await into(workProfile).insert(profile, mode: InsertMode.insertOrReplace);
     } catch (e) {
       _logger.logInfo('insertProfile', 'an unexpected error occurred. $_logger');
     }
+  }
+
+  Future<bool> profileExists(int id) async {
+    return await (select(workProfile)..where((tbl) => tbl.id.equals(id))).getSingleOrNull() != null;
   }
 
   Stream<List<WorkProfileData>> watchProfiles() {
@@ -25,6 +29,14 @@ class ProfileDao extends DatabaseAccessor<AppDatabase> with _$ProfileDaoMixin {
 
   Future<List<WorkProfileData>> getProfiles() {
     return select(workProfile).get();
+  }
+
+  Future<WorkProfileData?> getProfile(int id) {
+    return (select(workProfile)..where((tbl) => tbl.id.equals(id))).getSingleOrNull();
+  }
+
+  Future<WorkProfileData> getDefaultProfile() async {
+    return (select(workProfile)..where((tbl) => tbl.name.equals('Default'))).getSingle();
   }
 
   Future<void> deleteProfile(int id) async {

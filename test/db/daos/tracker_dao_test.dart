@@ -14,7 +14,7 @@ void main() {
     trackerDao = WorkTrackerDao(database);
     profileDao = ProfileDao(database);
 
-    const profile = WorkProfileData(id: 1, name: 'main', trackTime: false);
+    final profile = const WorkProfileData(id: 1, name: 'main', trackTime: false, trackWeekends: false).toCompanion(true);
 
     profileDao.insertProfile(profile);
   });
