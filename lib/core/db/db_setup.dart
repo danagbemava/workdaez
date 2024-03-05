@@ -21,7 +21,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.testing() : super(NativeDatabase.memory());
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -31,6 +31,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if(to == 3) {
         migrator.addColumn(workProfile, workProfile.trackWeekends);
+      }
+      if(to == 4) {
+        migrator.addColumn(workTracker, workTracker.hoursWorked);
       }
     }
   );

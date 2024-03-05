@@ -11,6 +11,8 @@ final FutureProvider<WorkProfileData?> activeProfileProvider =
 
   final activeProfileId = await storage.read(kActiveProfileKey);
 
+  print('activeProfileId: $activeProfileId');
+
   final dao = sl.get<ProfileDao>();
 
   final defaultProfile = await dao.getDefaultProfile();

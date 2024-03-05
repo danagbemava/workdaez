@@ -11,11 +11,23 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
 
   final _logger = LoggerMixin<WorkTrackerDao>();
 
-  Future<void> insertDayWorked(WorkTrackerData data) async {
+  Future<void> insertDayWorked(WorkTrackerCompanion data) async {
     try {
       await into(workTracker).insert(data);
     } catch (e) {
       _logger.logError('insertDayWorked', 'an unexpected error occurred. $e');
+    }
+  }
+
+  Future<bool> isDayMarked(DateTime date, int profileId) async {
+
+    try {
+      final dayMarked = await (select(workTracker)..where((tbl) => tbl.day.date.equals(date.toString()))).getSingleOrNull();
+
+      return dayMarked != null;
+    } catch (e) {
+      _logger.logError('isDayMarked', 'an unexpected error occurred. $e');
+      return false;
     }
   }
 

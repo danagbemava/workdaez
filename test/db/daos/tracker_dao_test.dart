@@ -1,5 +1,4 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:workdaez/core/db/daos/profile_dao.dart';
 import 'package:workdaez/core/db/daos/tracker_dao.dart';
 import 'package:workdaez/core/db/db_setup.dart';
@@ -23,15 +22,14 @@ void main() {
 
   test('adds one item on success', () async {
     final date = DateTime.now();
-    final formattedDate = DateFormat('yyyy-MM-dd').format(date);
 
-    var data = WorkTrackerData(id: 1, day: formattedDate, didWork: true, profileId: 1, dateGenerated: date);
+    var data = WorkTrackerData(id: 1, day: date, didWork: true, profileId: 1, dateGenerated: date);
 
     var daysWorked = await trackerDao.getAllDaysWorked();
 
     expect(0, daysWorked.length);
 
-    await trackerDao.insertDayWorked(data);
+    await trackerDao.insertDayWorked(data.toCompanion(true));
     daysWorked = await trackerDao.getAllDaysWorked();
 
     expect(1, daysWorked.length);
@@ -39,12 +37,11 @@ void main() {
 
   test('get days worked for month only returns total count for current month', () async {
     var date = DateTime.now();
-    final format = DateFormat('yyyy-MM-dd');
 
     var data = [
-      WorkTrackerData(id: 1, day: format.format(date), didWork: true, profileId: 1, dateGenerated: date),
-      WorkTrackerData(id: 2, day: format.format(DateTime(date.year, date.month, date.day + 1)), didWork: true, profileId: 1, dateGenerated: DateTime(date.year, date.month, date.day + 1)),
-      WorkTrackerData(id: 3, day: format.format(DateTime(date.year, date.month + 1, date.day)), didWork: true, profileId: 1, dateGenerated: DateTime(date.year, date.month + 1, date.day)),
+      WorkTrackerData(id: 1, day: date, didWork: true, profileId: 1, dateGenerated: date),
+      WorkTrackerData(id: 2, day: DateTime(date.year, date.month, date.day + 1), didWork: true, profileId: 1, dateGenerated: DateTime(date.year, date.month, date.day + 1)),
+      WorkTrackerData(id: 3, day: DateTime(date.year, date.month + 1, date.day), didWork: true, profileId: 1, dateGenerated: DateTime(date.year, date.month + 1, date.day)),
     ];
 
     var daysWorked = await trackerDao.getAllDaysWorked();
@@ -52,7 +49,7 @@ void main() {
     expect(0, daysWorked.length);
 
     for (var day in data) {
-      await trackerDao.insertDayWorked(day);
+      await trackerDao.insertDayWorked(day.toCompanion(true));
     }
 
     daysWorked = await trackerDao.getAllDaysWorked();

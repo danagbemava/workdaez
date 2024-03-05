@@ -5,6 +5,8 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:workdaez/core/app/profile/view_models/add_profile_view_model.dart';
 import 'package:workdaez/core/db/db_setup.dart';
 
+import '../view_models/profile_list_provider.dart';
+
 class AddProfileScreen extends HookConsumerWidget {
   const AddProfileScreen({super.key});
 
@@ -68,6 +70,7 @@ class AddProfileScreen extends HookConsumerWidget {
                 );
 
                 await ref.read(addProfileViewModel).save(profileData, onSuccess: () {
+                  ref.invalidate(profileListProvider);
                   Navigator.pop(context);
                 });
               },
