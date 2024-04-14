@@ -21,3 +21,20 @@ final dayMarkedProvider = FutureProviderFamily<bool, DateTime>((ref, date) async
 
   return dayMarked;
 });
+
+final daysWorkedForMonthProvider = FutureProviderFamily<int, int?>((ref, profileId) async {
+  final date = DateTime.now();
+
+  return await sl.get<WorkTrackerDao>().getDaysWorkedForMonth(date, profileId ?? 0);
+});
+
+final daysWorkedForMonthWithMonthOptionProvider = FutureProviderFamily<int, ({int month, int? profile})>((ref, arg) async {
+  return await sl.get<WorkTrackerDao>().getDaysWorkedForMonthWithMonthId(arg.month, arg.profile ?? 0);
+});
+
+final offDaysByTypeProvider = FutureProviderFamily<int, String>((ref, arg) async {
+  final date = DateTime.now();
+  final activeProfile = ref.watch(activeProfileProvider).value;
+
+  return await sl.get<WorkTrackerDao>().getOffDaysForMonthByType(date, arg, activeProfile?.id ?? 0);
+});

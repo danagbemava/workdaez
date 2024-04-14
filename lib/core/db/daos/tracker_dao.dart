@@ -1,11 +1,13 @@
 import 'package:drift/drift.dart';
+import 'package:intl/intl.dart';
 import 'package:workdaez/core/db/db_setup.dart';
+import 'package:workdaez/core/db/models/profile.dart';
 import 'package:workdaez/core/db/models/tracker.dart';
 import 'package:workdaez/shared/utils/logging_util.dart';
 
 part 'tracker_dao.g.dart';
 
-@DriftAccessor(tables: [WorkTracker])
+@DriftAccessor(tables: [WorkTracker, WorkProfile])
 class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDaoMixin {
   WorkTrackerDao(super.attachedDatabase);
 
@@ -13,6 +15,7 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
 
   Future<void> insertDayWorked(WorkTrackerCompanion data) async {
     try {
+      _logger.logInfo("insertDayWorked", "$data");
       await into(workTracker).insert(data);
     } catch (e) {
       _logger.logError('insertDayWorked', 'an unexpected error occurred. $e');
@@ -20,11 +23,25 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
   }
 
   Future<bool> isDayMarked(DateTime date, int profileId) async {
+    _logger.logInfo("isDayMarked", 'profile & day: $profileId, $date');
+    final formattedDate = DateFormat('yyyy-MM-dd').format(date);
 
     try {
-      final dayMarked = await (select(workTracker)..where((tbl) => tbl.day.date.equals(date.toString()))).getSingleOrNull();
+      final query = (select(workTracker)..where((tbl) => tbl.day.date.equals(formattedDate)));
 
-      return dayMarked != null;
+      final result = await query.get();
+
+      _logger.logInfo("isDayMarked", "day marked: $result");
+
+      if (result.isNotEmpty) {
+        final matchingDayAndProfile = result.any((e) => e.profileId == profileId);
+
+        _logger.logInfo("isDayMarked", "matching day & profile: $matchingDayAndProfile");
+
+        return matchingDayAndProfile;
+      }
+
+      return false;
     } catch (e) {
       _logger.logError('isDayMarked', 'an unexpected error occurred. $e');
       return false;
@@ -35,16 +52,43 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
     return select(workTracker).get();
   }
 
-  Future<int> getDaysWorkedForMonth(DateTime date) async {
+  Future<int> getDaysWorkedForMonth(DateTime date, int profileId) async {
     final month = date.month;
 
     try {
-      final daysWorkedForMonth =  await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
+      final daysWorkedForMonth =
+          await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
 
-      return daysWorkedForMonth.length;
+      return daysWorkedForMonth.where((e) => e.profileId == profileId && e.didWork).length;
     } catch (e) {
       _logger.logError('getDaysWorkedForMonth', 'an unexpected error occurred. $e');
-      return 0;      
+      return 0;
+    }
+  }
+
+  Future<int> getDaysWorkedForMonthWithMonthId(int month, int profileId) async {
+    try {
+      final daysWorkedForMonth =
+          await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
+
+      return daysWorkedForMonth.where((e) => e.profileId == profileId && e.didWork).length;
+    } catch (e) {
+      _logger.logError('getDaysWorkedForMonth', 'an unexpected error occurred. $e');
+      return 0;
+    }
+  }
+
+  Future<int> getOffDaysForMonthByType(DateTime date, String type, int profileId) async {
+    final month = date.month;
+
+    try {
+      final offDaysForMonth =
+          await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
+
+      return offDaysForMonth.where((e) => e.profileId == profileId && !e.didWork && e.absentReason?.toLowerCase() == type.toLowerCase()).length;
+    } catch (e) {
+      _logger.logError('getDaysWorkedForMonth', 'an unexpected error occurred. $e');
+      return 0;
     }
   }
 }

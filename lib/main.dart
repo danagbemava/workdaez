@@ -2,10 +2,10 @@ import 'package:bot_toast/bot_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:responsive_framework/responsive_framework.dart';
+import 'package:workdaez/core/app/base.dart';
 import 'package:workdaez/core/db/db_setup.dart';
 
 import 'config/service_locator.dart';
-import 'core/app/day_marker/screens/mark_day_screen.dart';
 
 Future<void> main() async{
   try {
@@ -57,7 +57,7 @@ class MyApp extends StatelessWidget {
 
         return child;
       },
-      home: const MarkDayScreen(),
+      home: const BaseScreen(),
     );
   }
 }

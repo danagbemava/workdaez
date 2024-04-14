@@ -13,17 +13,18 @@ void main() {
     trackerDao = WorkTrackerDao(database);
     profileDao = ProfileDao(database);
 
-    final profile = const WorkProfileData(id: 1, name: 'main', trackTime: false, trackWeekends: false).toCompanion(true);
+    final profile = const WorkProfileData(
+            id: 1, name: 'main', trackTime: false, trackWeekends: false)
+        .toCompanion(true);
 
     profileDao.insertProfile(profile);
   });
 
-
-
   test('adds one item on success', () async {
     final date = DateTime.now();
 
-    var data = WorkTrackerData(id: 1, day: date, didWork: true, profileId: 1, dateGenerated: date);
+    var data = WorkTrackerData(
+        id: 1, day: date, didWork: true, profileId: 1, dateGenerated: date);
 
     var daysWorked = await trackerDao.getAllDaysWorked();
 
@@ -35,13 +36,26 @@ void main() {
     expect(1, daysWorked.length);
   });
 
-  test('get days worked for month only returns total count for current month', () async {
+  test('get days worked for month only returns total count for current month',
+      () async {
     var date = DateTime.now();
+    final profileId = 1;
 
     var data = [
-      WorkTrackerData(id: 1, day: date, didWork: true, profileId: 1, dateGenerated: date),
-      WorkTrackerData(id: 2, day: DateTime(date.year, date.month, date.day + 1), didWork: true, profileId: 1, dateGenerated: DateTime(date.year, date.month, date.day + 1)),
-      WorkTrackerData(id: 3, day: DateTime(date.year, date.month + 1, date.day), didWork: true, profileId: 1, dateGenerated: DateTime(date.year, date.month + 1, date.day)),
+      WorkTrackerData(
+          id: 1, day: date, didWork: true, profileId: profileId, dateGenerated: date),
+      WorkTrackerData(
+          id: 2,
+          day: DateTime(date.year, date.month, date.day + 1),
+          didWork: true,
+          profileId: profileId,
+          dateGenerated: DateTime(date.year, date.month, date.day + 1)),
+      WorkTrackerData(
+          id: 3,
+          day: DateTime(date.year, date.month + 1, date.day),
+          didWork: true,
+          profileId: profileId,
+          dateGenerated: DateTime(date.year, date.month + 1, date.day)),
     ];
 
     var daysWorked = await trackerDao.getAllDaysWorked();
@@ -56,7 +70,7 @@ void main() {
 
     expect(3, daysWorked.length);
 
-    final totalDaysWorked = await trackerDao.getDaysWorkedForMonth(date);
+    final totalDaysWorked = await trackerDao.getDaysWorkedForMonth(date, profileId);
 
     expect(2, totalDaysWorked);
   });
