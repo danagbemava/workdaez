@@ -283,9 +283,9 @@ class $WorkTrackerTable extends WorkTracker
       const VerificationMeta('didWork');
   @override
   late final GeneratedColumn<bool> didWork = GeneratedColumn<bool>(
-      'did_work', aliasedName, false,
+      'did_work', aliasedName, true,
       type: DriftSqlType.bool,
-      requiredDuringInsert: true,
+      requiredDuringInsert: false,
       defaultConstraints:
           GeneratedColumn.constraintIsAlways('CHECK ("did_work" IN (0, 1))'));
   static const VerificationMeta _profileIdMeta =
@@ -353,8 +353,6 @@ class $WorkTrackerTable extends WorkTracker
     if (data.containsKey('did_work')) {
       context.handle(_didWorkMeta,
           didWork.isAcceptableOrUnknown(data['did_work']!, _didWorkMeta));
-    } else if (isInserting) {
-      context.missing(_didWorkMeta);
     }
     if (data.containsKey('profile_id')) {
       context.handle(_profileIdMeta,
@@ -400,7 +398,7 @@ class $WorkTrackerTable extends WorkTracker
       day: attachedDatabase.typeMapping
           .read(DriftSqlType.dateTime, data['${effectivePrefix}day'])!,
       didWork: attachedDatabase.typeMapping
-          .read(DriftSqlType.bool, data['${effectivePrefix}did_work'])!,
+          .read(DriftSqlType.bool, data['${effectivePrefix}did_work']),
       profileId: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}profile_id'])!,
       absentReason: attachedDatabase.typeMapping
@@ -423,7 +421,7 @@ class $WorkTrackerTable extends WorkTracker
 class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
   final int id;
   final DateTime day;
-  final bool didWork;
+  final bool? didWork;
   final int profileId;
   final String? absentReason;
   final DateTime dateGenerated;
@@ -432,7 +430,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
   const WorkTrackerData(
       {required this.id,
       required this.day,
-      required this.didWork,
+      this.didWork,
       required this.profileId,
       this.absentReason,
       required this.dateGenerated,
@@ -443,7 +441,9 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['day'] = Variable<DateTime>(day);
-    map['did_work'] = Variable<bool>(didWork);
+    if (!nullToAbsent || didWork != null) {
+      map['did_work'] = Variable<bool>(didWork);
+    }
     map['profile_id'] = Variable<int>(profileId);
     if (!nullToAbsent || absentReason != null) {
       map['absent_reason'] = Variable<String>(absentReason);
@@ -462,7 +462,9 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
     return WorkTrackerCompanion(
       id: Value(id),
       day: Value(day),
-      didWork: Value(didWork),
+      didWork: didWork == null && nullToAbsent
+          ? const Value.absent()
+          : Value(didWork),
       profileId: Value(profileId),
       absentReason: absentReason == null && nullToAbsent
           ? const Value.absent()
@@ -482,7 +484,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
     return WorkTrackerData(
       id: serializer.fromJson<int>(json['id']),
       day: serializer.fromJson<DateTime>(json['day']),
-      didWork: serializer.fromJson<bool>(json['didWork']),
+      didWork: serializer.fromJson<bool?>(json['didWork']),
       profileId: serializer.fromJson<int>(json['profileId']),
       absentReason: serializer.fromJson<String?>(json['absentReason']),
       dateGenerated: serializer.fromJson<DateTime>(json['dateGenerated']),
@@ -496,7 +498,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'day': serializer.toJson<DateTime>(day),
-      'didWork': serializer.toJson<bool>(didWork),
+      'didWork': serializer.toJson<bool?>(didWork),
       'profileId': serializer.toJson<int>(profileId),
       'absentReason': serializer.toJson<String?>(absentReason),
       'dateGenerated': serializer.toJson<DateTime>(dateGenerated),
@@ -508,7 +510,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
   WorkTrackerData copyWith(
           {int? id,
           DateTime? day,
-          bool? didWork,
+          Value<bool?> didWork = const Value.absent(),
           int? profileId,
           Value<String?> absentReason = const Value.absent(),
           DateTime? dateGenerated,
@@ -517,7 +519,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
       WorkTrackerData(
         id: id ?? this.id,
         day: day ?? this.day,
-        didWork: didWork ?? this.didWork,
+        didWork: didWork.present ? didWork.value : this.didWork,
         profileId: profileId ?? this.profileId,
         absentReason:
             absentReason.present ? absentReason.value : this.absentReason,
@@ -560,7 +562,7 @@ class WorkTrackerData extends DataClass implements Insertable<WorkTrackerData> {
 class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
   final Value<int> id;
   final Value<DateTime> day;
-  final Value<bool> didWork;
+  final Value<bool?> didWork;
   final Value<int> profileId;
   final Value<String?> absentReason;
   final Value<DateTime> dateGenerated;
@@ -579,14 +581,13 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
   WorkTrackerCompanion.insert({
     this.id = const Value.absent(),
     required DateTime day,
-    required bool didWork,
+    this.didWork = const Value.absent(),
     required int profileId,
     this.absentReason = const Value.absent(),
     required DateTime dateGenerated,
     this.notes = const Value.absent(),
     this.hoursWorked = const Value.absent(),
   })  : day = Value(day),
-        didWork = Value(didWork),
         profileId = Value(profileId),
         dateGenerated = Value(dateGenerated);
   static Insertable<WorkTrackerData> custom({
@@ -614,7 +615,7 @@ class WorkTrackerCompanion extends UpdateCompanion<WorkTrackerData> {
   WorkTrackerCompanion copyWith(
       {Value<int>? id,
       Value<DateTime>? day,
-      Value<bool>? didWork,
+      Value<bool?>? didWork,
       Value<int>? profileId,
       Value<String?>? absentReason,
       Value<DateTime>? dateGenerated,

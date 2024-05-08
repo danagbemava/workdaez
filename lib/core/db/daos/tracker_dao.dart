@@ -49,7 +49,7 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
   }
 
   Future<List<WorkTrackerData>> getAllDaysWorked() async {
-    return select(workTracker).get();
+    return (select(workTracker)..where((tbl) => tbl.didWork.equals(true))).get();
   }
 
   Future<int> getDaysWorkedForMonth(DateTime date, int profileId) async {
@@ -59,7 +59,7 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
       final daysWorkedForMonth =
           await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
 
-      return daysWorkedForMonth.where((e) => e.profileId == profileId && e.didWork).length;
+      return daysWorkedForMonth.where((e) => e.profileId == profileId && e.didWork!).length;
     } catch (e) {
       _logger.logError('getDaysWorkedForMonth', 'an unexpected error occurred. $e');
       return 0;
@@ -71,7 +71,7 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
       final daysWorkedForMonth =
           await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
 
-      return daysWorkedForMonth.where((e) => e.profileId == profileId && e.didWork).length;
+      return daysWorkedForMonth.where((e) => e.profileId == profileId && e.didWork!).length;
     } catch (e) {
       _logger.logError('getDaysWorkedForMonth', 'an unexpected error occurred. $e');
       return 0;
@@ -82,13 +82,32 @@ class WorkTrackerDao extends DatabaseAccessor<AppDatabase> with _$WorkTrackerDao
     final month = date.month;
 
     try {
-      final offDaysForMonth =
-          await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
+      final offDaysForMonth = await (select(workTracker)..where((tbl) => tbl.dateGenerated.month.equals(month))).get();
 
-      return offDaysForMonth.where((e) => e.profileId == profileId && !e.didWork && e.absentReason?.toLowerCase() == type.toLowerCase()).length;
+      return offDaysForMonth
+          .where((e) => e.profileId == profileId && !e.didWork! && e.absentReason?.toLowerCase() == type.toLowerCase())
+          .length;
     } catch (e) {
       _logger.logError('getDaysWorkedForMonth', 'an unexpected error occurred. $e');
       return 0;
+    }
+  }
+
+  Future<void> resetDay(DateTime day) async {
+    try {
+      _logger.logInfo('resetDay', '${day.toIso8601String()}, ${day.toString()}');
+      var days = await (select(workTracker)..where((tbl) => tbl.day.month.equals(day.month))).get();
+
+      _logger.logInfo('resetDay', 'days found: ${days.length}');
+
+      final foundDay = days.singleWhere((e) => e.day.day == day.day && e.day.year == day.year);
+
+      await delete(workTracker).delete(foundDay);
+
+      return;
+    } catch (e) {
+      _logger.logError('resetDay', 'an exception occured: $e');
+      return;
     }
   }
 }

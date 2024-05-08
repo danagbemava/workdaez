@@ -122,7 +122,7 @@ class MarkDayScreen extends HookConsumerWidget {
                     ),
                     ...AbsentValues.values.map((e) {
                       final offDays = ref.watch(offDaysByTypeProvider.call(e.name));
-                
+
                       return offDays.when(
                         data: (daysOffForType) {
                           return Container(
@@ -157,10 +157,24 @@ class MarkDayScreen extends HookConsumerWidget {
                     itemBuilder: (context, int index) {
                       final day = DateTime(today.value.year, today.value.month, today.value.day - index);
                       final dayMarked = ref.watch(dayMarkedProvider.call(day)).value ?? false;
-
+                      
                       if (dayMarked) {
                         return Center(
-                          child: Text('${formatted.format(day)}\nDay has already been marked. Have a cookie'),
+                          child: Column(
+                            children: [
+                              Text('${formatted.format(day)}\nDay has already been marked. Have a cookie'),
+                              const SizedBox(
+                                height: 10,
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  await ref.read(dayResetProvider.call(day));
+                                  ref.invalidate(dayMarkedProvider);
+                                },
+                                child: Text('Reset'),
+                              )
+                            ],
+                          ),
                         );
                       }
 
